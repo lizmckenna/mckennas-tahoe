@@ -24,7 +24,6 @@
 
   <footer class="foot">
     <div id="mock-tag-foot" class="mock-tag" hidden>Preview · sample data</div>
-    <div>Don't over-program. Leave room to nap.</div>
   </footer>
 
 </main>
@@ -64,8 +63,25 @@
       meal:      { emoji: "🍽️",  pill: "warm", label: "meal" },
       hike:      { emoji: "🥾",  pill: "pine", label: "hike" },
       beach:     { emoji: "🏖️", pill: "",     label: "beach" },
+      bike:      { emoji: "🚴",  pill: "pine", label: "bike" },
+      boat:      { emoji: "🛶",  pill: "",     label: "on the water" },
+      game:      { emoji: "🎲",  pill: "warm", label: "games" },
       kids:      { emoji: "🧒",  pill: "warm", label: "kids" },
       logistics: { emoji: "📦",  pill: "muted", label: "logistics" },
+    };
+
+    // When an itinerary row has no Kind column, guess one from the title so
+    // entries still get an emoji + pill.
+    const inferKind = title => {
+      const t = (title || "").toLowerCase();
+      if (/hike|trail|walk|falls|summit/.test(t)) return "hike";
+      if (/bike|cycl|ride/.test(t)) return "bike";
+      if (/kayak|paddle|boat|raft|sail|canoe/.test(t)) return "boat";
+      if (/beach|swim|lake day|sand/.test(t)) return "beach";
+      if (/game|trivia|puzzle|movie|talent/.test(t)) return "game";
+      if (/breakfast|lunch|dinner|bbq|cook|potluck|meal/.test(t)) return "meal";
+      if (/kid|craft|playground/.test(t)) return "kids";
+      return "";
     };
 
     const root = document.getElementById("days");
@@ -75,20 +91,28 @@
       const card = document.createElement("div");
       card.className = "card day-card";
 
-      // Dinner menu + lead(s) from the meals & chores tab
-      const dl = (data.dinnerLeads || {})[d.date];
-      const dinner = (dl && (dl.menu || dl.leads)) ? `
+      // Dinner menu + lead(s) from the meals & chores tab, plus headcount:
+      // everyone whose head-counts row covers this day is eating.
+      const dl = (data.dinnerLeads || {})[d.date] || {};
+      const present = (data.people || []).filter(p => (p.days || []).includes(d.short));
+      const adults = present.filter(p => p.role !== "kid").length;
+      const kidsN = present.length - adults;
+      const headcount = present.length
+        ? `<div class="lead">👥 ${present.length} for dinner (${adults} adults, ${kidsN} kids)</div>` : "";
+      const dinner = `
           <div class="day-item">
             <div class="time">Dinner</div>
             <div>
               <div class="title">🍽️ ${dl.menu || "Dinner"}</div>
               ${dl.leads ? `<div class="lead">Led by ${dl.leads}</div>` : ""}
+              ${headcount}
             </div>
             <span class="pill warm">meal</span>
-          </div>` : "";
+          </div>`;
 
       const list = items.map(s => {
-        const k = KIND[s.kind] || { emoji: "•", pill: "muted", label: s.kind || "" };
+        const kindKey = s.kind || inferKind(s.title);
+        const k = KIND[kindKey] || { emoji: "🌲", pill: "muted", label: kindKey || "" };
         return `
           <div class="day-item">
             <div class="time">${s.time === "all day" ? "All day" : s.time}</div>
@@ -96,9 +120,9 @@
               <div class="title">${k.emoji} ${s.title}</div>
               ${s.lead ? `<div class="lead">Led by ${s.lead}</div>` : ""}
             </div>
-            ${s.kind ? `<span class="pill ${k.pill}">${k.label}</span>` : ""}
+            ${kindKey ? `<span class="pill ${k.pill}">${k.label}</span>` : ""}
           </div>`;
-      }).join("") || (dinner ? "" : `<div class="day-item"><div class="time">—</div><div class="title">Open day. Go to the lake.</div><div></div></div>`);
+      }).join("");
       card.innerHTML = `
         <div class="day-head">
           <span class="name">${d.label}</span>

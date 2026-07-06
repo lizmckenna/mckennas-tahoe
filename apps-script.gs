@@ -81,10 +81,14 @@ function doPost(e) {
       }
     }
   } else if (data.action === "undo") {
-    // remove the most recent matching row
+    // remove the most recent matching row. Sheets turns "2026-07-20" cells
+    // into Date objects, so compare everything as normalized strings.
+    const norm = v => (v instanceof Date)
+      ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd")
+      : (v == null ? "" : v.toString().trim());
     const rows = sheet.getDataRange().getValues();
     for (let i = rows.length - 1; i >= 1; i--) {
-      if (rows[i][1] === data.person && rows[i][2] === data.date && rows[i][3] === data.chore) {
+      if (norm(rows[i][1]) === norm(data.person) && norm(rows[i][2]) === norm(data.date) && norm(rows[i][3]) === norm(data.chore)) {
         sheet.deleteRow(i + 1);
         break;
       }
@@ -180,7 +184,9 @@ function readCompletions(ss) {
     .map(r => ({
       at:     r[0] ? new Date(r[0]).toISOString() : "",
       person: r[1].toString(),
-      date:   r[2].toString(),
+      date:   (r[2] instanceof Date)
+        ? Utilities.formatDate(r[2], Session.getScriptTimeZone(), "yyyy-MM-dd")
+        : r[2].toString(),
       chore:  r[3].toString(),
     }));
 }
