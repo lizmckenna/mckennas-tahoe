@@ -25,7 +25,10 @@ window.TAHOE_CONFIG = {
     { person: "Danielle B.", emoji: "🌱", label: "Vegan",                   detail: "No meat, dairy, or eggs." },
     { person: "Sami",        emoji: "🌱", label: "Vegan",                   detail: "No meat, dairy, or eggs." },
   ],
-  dietaryNote: "Gluten-free and vegan dishes (including desserts) arrive Wednesday. Cooks: tell the table what's in your dish. The grown-ups know to ask, the kids may not.",
+  dietaryNote: "Gluten-free and vegan dishes (including desserts) arrive Wednesday. Cooks: tell the table what's in your dish.",
+
+  // Weather forecast location (Tahoe West Shore). Used on the Plan page.
+  weather: { lat: 39.07, lon: -120.14 },
 
   // Keywords the site scans menu text for, to auto-flag likely allergens.
   // Better safe than sorry: these are heads-ups, not verdicts — always ask the cook.

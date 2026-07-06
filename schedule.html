@@ -74,6 +74,19 @@
         .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
       const card = document.createElement("div");
       card.className = "card day-card";
+
+      // Dinner menu + lead(s) from the meals & chores tab
+      const dl = (data.dinnerLeads || {})[d.date];
+      const dinner = (dl && (dl.menu || dl.leads)) ? `
+          <div class="day-item">
+            <div class="time">Dinner</div>
+            <div>
+              <div class="title">🍽️ ${dl.menu || "Dinner"}</div>
+              ${dl.leads ? `<div class="lead">Led by ${dl.leads}</div>` : ""}
+            </div>
+            <span class="pill warm">meal</span>
+          </div>` : "";
+
       const list = items.map(s => {
         const k = KIND[s.kind] || { emoji: "•", pill: "muted", label: s.kind || "" };
         return `
@@ -85,16 +98,40 @@
             </div>
             ${s.kind ? `<span class="pill ${k.pill}">${k.label}</span>` : ""}
           </div>`;
-      }).join("") || `<div class="day-item"><div class="time">—</div><div class="title">Open day. Go to the lake.</div><div></div></div>`;
+      }).join("") || (dinner ? "" : `<div class="day-item"><div class="time">—</div><div class="title">Open day. Go to the lake.</div><div></div></div>`);
       card.innerHTML = `
         <div class="day-head">
           <span class="name">${d.label}</span>
           <span class="date">${d.short}</span>
+          <span class="wx" id="wx-${d.date}" style="margin-left:auto;font-size:0.82rem;font-weight:600;color:var(--ink-faint);white-space:nowrap"></span>
         </div>
-        ${list}
+        ${list}${dinner}
       `;
       root.appendChild(card);
     });
+
+    // Weather + UV per day (Open-Meteo, no key needed). Forecasts reach ~16
+    // days out, so cells fill in as the reunion gets closer.
+    try {
+      const w = cfg.weather || { lat: 39.07, lon: -120.14 };
+      const wxEmoji = c =>
+        c === 0 ? "☀️" : c <= 2 ? "🌤️" : c === 3 ? "☁️" : c <= 48 ? "🌫️" :
+        c <= 57 ? "🌦️" : c <= 67 ? "🌧️" : c <= 77 ? "🌨️" : c <= 82 ? "🌧️" :
+        c <= 86 ? "🌨️" : "⛈️";
+      const resp = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lon}` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max` +
+        `&temperature_unit=fahrenheit&timezone=America%2FLos_Angeles&forecast_days=16`);
+      const wx = await resp.json();
+      (wx.daily && wx.daily.time || []).forEach((date, i) => {
+        const el = document.getElementById("wx-" + date);
+        if (!el) return;
+        const uv = wx.daily.uv_index_max[i];
+        el.textContent =
+          `${wxEmoji(wx.daily.weather_code[i])} ${Math.round(wx.daily.temperature_2m_max[i])}°/` +
+          `${Math.round(wx.daily.temperature_2m_min[i])}° · UV ${uv == null ? "–" : Math.round(uv)}`;
+      });
+    } catch (e) { /* no forecast yet — leave headers plain */ }
   })();
 </script>
 

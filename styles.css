@@ -722,6 +722,7 @@ footer.foot {
   color: var(--ink-faint);
   font-size: 0.85rem;
 }
+.mock-tag[hidden] { display: none; }
 .mock-tag {
   display: inline-block;
   padding: 5px 12px;

@@ -194,18 +194,26 @@ function readLodging(ss) {
   const rng = sheet.getRange(3, 1, lastRow - 2, 10).getValues();
   const out = [];
   let lastLoc = "";
+  let lastRoom = "";
   const dayShorts = ["7/20","7/21","7/22","7/23","7/24","7/25","7/26"];
   rng.forEach(row => {
     const loc = (row[0] || "").toString().trim() || lastLoc;
     if (row[0]) lastLoc = loc;
-    const room = (row[1] || "").toString().trim();
-    if (!room) return;
+    // A blank Room cell means "same room as the row above" (extra beds
+    // in the dorm, second double, etc.) — carry it forward.
+    const roomRaw = (row[1] || "").toString().trim();
+    const room = roomRaw || lastRoom;
+    if (roomRaw) lastRoom = roomRaw;
     const bed = (row[2] || "").toString().trim();
     const assignments = {};
     dayShorts.forEach((s, i) => {
       const v = (row[3 + i] || "").toString().trim();
       if (v) assignments[s] = v;
     });
+    if (!room) return;
+    // Carried-room rows only count when they actually hold a bed or people
+    // (so blank spacer rows don't become phantom beds).
+    if (!roomRaw && !bed && Object.keys(assignments).length === 0) return;
     out.push({ location: loc, room, bed, assignments });
   });
   return out;
