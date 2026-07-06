@@ -225,31 +225,42 @@ function readSchedule(ss) {
     const ncols = Math.max(5, sheet.getLastColumn());
     const headers = sheet.getRange(1, 1, 1, ncols).getValues()[0]
       .map(h => h.toString().trim().toLowerCase());
+    const claimed = {};
     const col = (names, fallback) => {
-      for (const n of names) { const i = headers.indexOf(n); if (i >= 0) return i; }
-      return fallback;
+      for (const n of names) { const i = headers.indexOf(n); if (i >= 0 && !claimed[i]) { claimed[i] = true; return i; } }
+      if (fallback < ncols && !claimed[fallback]) { claimed[fallback] = true; return fallback; }
+      return -1;
     };
     const cDate  = col(["date", "day"], 0);
     const cTime  = col(["time", "when"], 1);
-    const cTitle = col(["title", "activity", "event", "what"], 2);
+    const cTitle = col(["title", "plan", "plans", "activity", "event", "what"], 2);
     const cLead  = col(["lead", "leader", "who", "host"], 3);
     const cKind  = col(["kind", "type", "category"], 4);
+    const cell = (r, i) => (i >= 0 && r[i] != null) ? r[i] : "";
     const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, ncols).getValues();
-    rows.filter(r => r[cDate] && r[cTitle]).forEach(r => {
-      const dateRaw = r[cDate];
-      const date = (dateRaw instanceof Date)
-        ? Utilities.formatDate(dateRaw, Session.getScriptTimeZone(), "yyyy-MM-dd")
-        : dateRaw.toString();
-      const timeRaw = r[cTime];
+    rows.filter(r => cell(r, cDate) !== "" && cell(r, cTitle) !== "").forEach(r => {
+      const dateRaw = cell(r, cDate);
+      let date;
+      if (dateRaw instanceof Date) {
+        date = Utilities.formatDate(dateRaw, Session.getScriptTimeZone(), "yyyy-MM-dd");
+      } else if (typeof dateRaw === "number") {
+        // Bare day-of-month like 20 → reunion month
+        date = "2026-07-" + ("0" + Math.round(dateRaw)).slice(-2);
+      } else {
+        date = dateRaw.toString().trim();
+        const md = date.match(/^(\d{1,2})[\/\-](\d{1,2})$/); // "7/20" → "2026-07-20"
+        if (md) date = "2026-" + ("0" + md[1]).slice(-2) + "-" + ("0" + md[2]).slice(-2);
+      }
+      const timeRaw = cell(r, cTime);
       const time = (timeRaw instanceof Date)
         ? Utilities.formatDate(timeRaw, Session.getScriptTimeZone(), "h:mm a")
-        : (timeRaw || "").toString();
+        : timeRaw.toString();
       out.push({
         date,
         time,
-        title: (r[cTitle] || "").toString(),
-        lead:  (r[cLead]  || "").toString(),
-        kind:  (r[cKind]  || "").toString(),
+        title: cell(r, cTitle).toString(),
+        lead:  cell(r, cLead).toString(),
+        kind:  cell(r, cKind).toString(),
       });
     });
   });
