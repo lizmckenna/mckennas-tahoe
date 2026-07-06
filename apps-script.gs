@@ -84,7 +84,7 @@ function doPost(e) {
     // remove the most recent matching row. Sheets turns "2026-07-20" cells
     // into Date objects, so compare everything as normalized strings.
     const norm = v => (v instanceof Date)
-      ? Utilities.formatDate(v, Session.getScriptTimeZone(), "yyyy-MM-dd")
+      ? Utilities.formatDate(v, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd")
       : (v == null ? "" : v.toString().trim());
     const rows = sheet.getDataRange().getValues();
     for (let i = rows.length - 1; i >= 1; i--) {
@@ -185,7 +185,7 @@ function readCompletions(ss) {
       at:     r[0] ? new Date(r[0]).toISOString() : "",
       person: r[1].toString(),
       date:   (r[2] instanceof Date)
-        ? Utilities.formatDate(r[2], Session.getScriptTimeZone(), "yyyy-MM-dd")
+        ? Utilities.formatDate(r[2], ss.getSpreadsheetTimeZone(), "yyyy-MM-dd")
         : r[2].toString(),
       chore:  r[3].toString(),
     }));
@@ -256,7 +256,7 @@ function readSchedule(ss) {
       const dateRaw = cell(r, cDate);
       let date;
       if (dateRaw instanceof Date) {
-        date = Utilities.formatDate(dateRaw, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        date = Utilities.formatDate(dateRaw, ss.getSpreadsheetTimeZone(), "yyyy-MM-dd");
       } else if (typeof dateRaw === "number") {
         // Bare day-of-month like 20 → reunion month
         date = "2026-07-" + ("0" + Math.round(dateRaw)).slice(-2);
@@ -267,7 +267,7 @@ function readSchedule(ss) {
       }
       const timeRaw = cell(r, cTime);
       const time = (timeRaw instanceof Date)
-        ? Utilities.formatDate(timeRaw, Session.getScriptTimeZone(), "h:mm a")
+        ? Utilities.formatDate(timeRaw, ss.getSpreadsheetTimeZone(), "h:mm a")
         : timeRaw.toString();
       out.push({
         date,
