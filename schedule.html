@@ -94,11 +94,12 @@
       // Dinner menu + lead(s) from the meals & chores tab, plus headcount:
       // everyone whose head-counts row covers this day is eating.
       const dl = (data.dinnerLeads || {})[d.date] || {};
-      const present = (data.people || []).filter(p => (p.days || []).includes(d.short));
-      const adults = present.filter(p => p.role !== "kid").length;
-      const kidsN = present.length - adults;
-      const headcount = present.length
-        ? `<div class="lead">👥 ${present.length} for dinner (${adults} adults, ${kidsN} kids)</div>` : "";
+      // One number, from the sheet's own Grand total row (falls back to
+      // counting head-count rows if the backend doesn't send totals yet).
+      const total = (data.dayTotals || {})[d.date]
+        ?? (data.people || []).filter(p => (p.days || []).includes(d.short)).length;
+      const headcount = total
+        ? `<div class="lead">👥 ${total} for dinner</div>` : "";
       const dinner = `
           <div class="day-item">
             <div class="time">Dinner</div>

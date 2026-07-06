@@ -42,6 +42,7 @@ function doGet(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const payload = {
     people:       readPeople(ss),
+    dayTotals:    readDayTotals(ss),
     dinnerLeads:  readDinnerLeads(ss),
     choreSlots:   readChoreSlots(ss),
     completions:  readCompletions(ss),
@@ -139,6 +140,26 @@ function readHeadcountDayCols(sheet) {
   // The headcounts sheet has columns Mon..Sun in row 2 ("Mon", "Tu", ...)
   // and row 4 has dates "20","21",... We'll just hard-map for July 20–26.
   return { 3: "7/20", 4: "7/21", 5: "7/22", 6: "7/23", 7: "7/24", 8: "7/25", 9: "7/26" };
+}
+
+// Per-day totals straight from the head counts tab's "Grand total" row —
+// the sheet's formulas are the source of truth, not a re-count of name rows.
+function readDayTotals(ss) {
+  const sheet = ss.getSheetByName(SHEET_HEADCOUNTS);
+  if (!sheet) return {};
+  const dates = ["2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-25","2026-07-26"];
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 0; i < rows.length; i++) {
+    if ((rows[i][2] || "").toString().trim().toLowerCase() === "grand total") {
+      const out = {};
+      dates.forEach((d, j) => {
+        const v = rows[i][3 + j];
+        if (typeof v === "number") out[d] = v;
+      });
+      return out;
+    }
+  }
+  return {};
 }
 
 function readDinnerLeads(ss) {
