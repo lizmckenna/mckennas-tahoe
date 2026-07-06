@@ -212,22 +212,46 @@ function readLodging(ss) {
 }
 
 function readSchedule(ss) {
-  const sheet = ss.getSheetByName(SHEET_SCHEDULE);
-  if (!sheet || sheet.getLastRow() < 2) return [];
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 5).getValues();
-  return rows
-    .filter(r => r[0] && r[2])
-    .map(r => {
-      const dateRaw = r[0];
+  // Merges the "schedule" tab plus any tab whose name starts with "itiner"
+  // (itinerary, itinerayr, ...) — so the family can add hikes, bike rides,
+  // etc. on their own tab and they show up on the site's schedule page.
+  // Columns are matched by header name (row 1), falling back to position:
+  //   date | time | title | lead | kind
+  const out = [];
+  ss.getSheets().forEach(sheet => {
+    const name = sheet.getName().toString().trim().toLowerCase();
+    if (name !== SHEET_SCHEDULE && name.indexOf("itiner") !== 0) return;
+    if (sheet.getLastRow() < 2) return;
+    const ncols = Math.max(5, sheet.getLastColumn());
+    const headers = sheet.getRange(1, 1, 1, ncols).getValues()[0]
+      .map(h => h.toString().trim().toLowerCase());
+    const col = (names, fallback) => {
+      for (const n of names) { const i = headers.indexOf(n); if (i >= 0) return i; }
+      return fallback;
+    };
+    const cDate  = col(["date", "day"], 0);
+    const cTime  = col(["time", "when"], 1);
+    const cTitle = col(["title", "activity", "event", "what"], 2);
+    const cLead  = col(["lead", "leader", "who", "host"], 3);
+    const cKind  = col(["kind", "type", "category"], 4);
+    const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, ncols).getValues();
+    rows.filter(r => r[cDate] && r[cTitle]).forEach(r => {
+      const dateRaw = r[cDate];
       const date = (dateRaw instanceof Date)
         ? Utilities.formatDate(dateRaw, Session.getScriptTimeZone(), "yyyy-MM-dd")
         : dateRaw.toString();
-      return {
+      const timeRaw = r[cTime];
+      const time = (timeRaw instanceof Date)
+        ? Utilities.formatDate(timeRaw, Session.getScriptTimeZone(), "h:mm a")
+        : (timeRaw || "").toString();
+      out.push({
         date,
-        time:  (r[1] || "").toString(),
-        title: (r[2] || "").toString(),
-        lead:  (r[3] || "").toString(),
-        kind:  (r[4] || "").toString(),
-      };
+        time,
+        title: (r[cTitle] || "").toString(),
+        lead:  (r[cLead]  || "").toString(),
+        kind:  (r[cKind]  || "").toString(),
+      });
     });
+  });
+  return out.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
 }
