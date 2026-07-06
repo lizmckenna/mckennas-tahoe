@@ -64,6 +64,7 @@
       hike:      { emoji: "🥾",  pill: "pine", label: "hike" },
       beach:     { emoji: "🏖️", pill: "",     label: "beach" },
       bike:      { emoji: "🚴",  pill: "pine", label: "bike" },
+      party:     { emoji: "🎂",  pill: "warm", label: "party" },
       boat:      { emoji: "🛶",  pill: "",     label: "on the water" },
       game:      { emoji: "🎲",  pill: "warm", label: "games" },
       kids:      { emoji: "🧒",  pill: "warm", label: "kids" },
@@ -74,6 +75,7 @@
     // entries still get an emoji + pill.
     const inferKind = title => {
       const t = (title || "").toLowerCase();
+      if (/b(irth)?day|bday|celebrat|party|cake|anniversar/.test(t)) return "party";
       if (/hike|trail|walk|falls|summit/.test(t)) return "hike";
       if (/bike|cycl|ride/.test(t)) return "bike";
       if (/kayak|paddle|boat|raft|sail|canoe/.test(t)) return "boat";

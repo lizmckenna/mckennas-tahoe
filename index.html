@@ -228,12 +228,13 @@
       }).join("");
     }
 
+    // Totals come from the head counts tab's own summary rows when available.
     const here = data.people.filter(p => (p.days || []).includes(todayDay.short));
-    const adults = here.filter(p => p.role === "adult");
-    const kids = here.filter(p => p.role === "kid");
-    const sleeping = here.filter(p => !p.dayVisitor);
+    const total = (data.dayTotals || {})[todayIso] ?? here.length;
+    const sleeping = (data.nightTotals || {})[todayIso]
+      ?? here.filter(p => !p.dayVisitor).length;
     document.getElementById("today-headcount").textContent =
-      `${adults.length} grown-ups · ${kids.length} kids · ${sleeping.length} sleeping over`;
+      `👥 ${total} people today · ${sleeping} sleeping over`;
   })();
 </script>
 
