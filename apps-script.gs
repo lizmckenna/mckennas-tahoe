@@ -38,7 +38,18 @@ const SHEET_LODGING     = "lodging";
 const SHEET_SCHEDULE    = "schedule";
 const SHEET_COMPLETIONS = "chore_completions";
 
+const CACHE_KEY = "tahoe_payload_v1";
+
 function doGet(e) {
+  // Serve a cached JSON blob when it's fresh — reading every tab on each
+  // request is what makes cold requests take 30–80s. Cache lasts 30s and is
+  // cleared on any write (doPost), so signups/completions still show quickly.
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(CACHE_KEY);
+  if (hit) {
+    return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
+  }
+
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const payload = {
     people:       readPeople(ss),
@@ -50,8 +61,10 @@ function doGet(e) {
     lodging:      readLodging(ss),
     schedule:     readSchedule(ss),
   };
+  const json = JSON.stringify(payload);
+  try { cache.put(CACHE_KEY, json, 30); } catch (err) { /* >100KB — skip cache */ }
   return ContentService
-    .createTextOutput(JSON.stringify(payload))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -96,6 +109,9 @@ function doPost(e) {
       }
     }
   }
+  // A write happened — drop the cached payload so the next read is fresh.
+  try { CacheService.getScriptCache().remove(CACHE_KEY); } catch (err) {}
+
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true }))
     .setMimeType(ContentService.MimeType.JSON);

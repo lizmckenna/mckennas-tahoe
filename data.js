@@ -207,18 +207,41 @@
     return params.get("mock") === "1" || !url || mockMode;
   }
 
+  // The Apps Script backend can be slow to wake (cold starts of 30–80s are
+  // common). So we cache the last good payload in localStorage and serve it
+  // INSTANTLY on repeat visits, while a fresh copy loads in the background for
+  // next time. Only the very first visit on a device has to wait on the network.
+  const CACHE_KEY = "tahoe:payload:v1";
+
   async function fetchAll() {
     if (useMock()) {
       mockMode = true;
       return mockBundle();
     }
     const url = window.TAHOE_CONFIG.appsScriptUrl;
+
+    // Kick off a fresh fetch that updates the cache for the next load.
+    const refresh = fetch(url)
+      .then(res => { if (!res.ok) throw new Error("bad status " + res.status); return res.json(); })
+      .then(data => {
+        data.mock = false;
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+        return data;
+      });
+
+    // If we have a cached payload, return it right away — no waiting.
+    let cached = null;
+    try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch (e) {}
+    if (cached && cached.people) {
+      cached.mock = false;
+      cached.cached = true;
+      refresh.catch(() => {}); // refresh in background; ignore errors this load
+      return cached;
+    }
+
+    // First visit on this device — we have to wait on the network this once.
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("bad status " + res.status);
-      const data = await res.json();
-      data.mock = false;
-      return data;
+      return await refresh;
     } catch (err) {
       console.warn("Tahoe: live fetch failed, falling back to mock data.", err);
       mockMode = true;
