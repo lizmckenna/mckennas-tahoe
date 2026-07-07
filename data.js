@@ -220,12 +220,15 @@
     }
     const url = window.TAHOE_CONFIG.appsScriptUrl;
 
-    // Kick off a fresh fetch that updates the cache for the next load.
-    const refresh = fetch(url)
+    // A fresh fetch that updates the cache (+ timestamp) for the next load.
+    const doFetch = () => fetch(url)
       .then(res => { if (!res.ok) throw new Error("bad status " + res.status); return res.json(); })
       .then(data => {
         data.mock = false;
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch (e) {}
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+          localStorage.setItem(CACHE_KEY + ":at", String(Date.now()));
+        } catch (e) {}
         return data;
       });
 
@@ -235,13 +238,16 @@
     if (cached && cached.people) {
       cached.mock = false;
       cached.cached = true;
-      refresh.catch(() => {}); // refresh in background; ignore errors this load
+      // Only refresh in the background if the cache is older than 90s, so quick
+      // tab-to-tab navigation doesn't keep re-hitting the slow backend.
+      const at = Number(localStorage.getItem(CACHE_KEY + ":at") || 0);
+      if (Date.now() - at > 90000) doFetch().catch(() => {});
       return cached;
     }
 
     // First visit on this device — we have to wait on the network this once.
     try {
-      return await refresh;
+      return await doFetch();
     } catch (err) {
       console.warn("Tahoe: live fetch failed, falling back to mock data.", err);
       mockMode = true;
