@@ -19,6 +19,7 @@ window.TAHOE_CONFIG = {
   // Food allergies & diets — shown on Home and the Help-out page.
   // Written so a kid can read it. Keep person names matching the roster.
   dietary: [
+    { person: "Desi",        emoji: "🥜", label: "Peanuts + tree nuts (severe)", detail: "Severe peanut and nut allergy. Keep all nuts far away and check labels carefully." },
     { person: "Clara",       emoji: "🌰", label: "ALL tree nuts",           detail: "Including walnuts, pecans, pistachios, and Brazil nuts. No exceptions." },
     { person: "Rhys",        emoji: "🌰", label: "Tree nuts (walnuts OK)",  detail: "Allergic to most tree nuts. Walnuts are the one exception." },
     { person: "Aaron",       emoji: "🌾", label: "Wheat + soy (severe)",    detail: "Any kind of wheat, and soy. He checks carefully, so make ingredients easy to find." },
