@@ -63,34 +63,51 @@
     if (data.mock) document.getElementById("mock-tag-foot").hidden = false;
 
     const root = document.getElementById("lodging-root");
-    let lastLoc = "";
+
+    // One card per ROOM: rooms with several beds (the dorm, doubles) get one
+    // row of day cells per bed inside the same card.
+    const groups = [];
+    const byKey = {};
     data.lodging.forEach(row => {
-      if (row.location !== lastLoc) {
+      const key = row.location + "||" + row.room;
+      if (!byKey[key]) {
+        byKey[key] = { location: row.location, room: row.room, beds: [] };
+        groups.push(byKey[key]);
+      }
+      byKey[key].beds.push(row);
+    });
+
+    let lastLoc = "";
+    groups.forEach(g => {
+      if (g.location !== lastLoc) {
         const band = document.createElement("div");
         band.className = "location-band";
-        band.textContent = row.location;
+        band.textContent = g.location;
         root.appendChild(band);
         const list = document.createElement("div");
         list.className = "bed-list";
-        list.id = "list-" + row.location.replace(/\W+/g, "-");
+        list.id = "list-" + g.location.replace(/\W+/g, "-");
         root.appendChild(list);
-        lastLoc = row.location;
+        lastLoc = g.location;
       }
-      const listId = "list-" + row.location.replace(/\W+/g, "-");
-      const list = document.getElementById(listId);
+      const list = document.getElementById("list-" + g.location.replace(/\W+/g, "-"));
       const card = document.createElement("div");
       card.className = "bed-card";
+      const types = [...new Set(g.beds.map(b => b.bed).filter(Boolean))];
+      const typeLabel = g.beds.length > 1
+        ? (types.length === 1 ? `${types[0]} × ${g.beds.length}` : types.join(" · "))
+        : (types[0] || "");
       const dayHeader = cfg.days.map(d => `<div class="d">${d.label[0]}</div>`).join("");
-      const dayCells = cfg.days.map(d => {
-        const v = (row.assignments || {})[d.short] || "";
+      const bedRows = g.beds.map(b => cfg.days.map(d => {
+        const v = (b.assignments || {})[d.short] || "";
         return `<div class="v ${v ? "" : "empty"}">${v || "open"}</div>`;
-      }).join("");
+      }).join("")).join("");
       card.innerHTML = `
         <div class="bed-head">
-          <div class="bed-room">${row.room}</div>
-          <div class="bed-type">${row.bed || ""}</div>
+          <div class="bed-room">${g.room}</div>
+          <div class="bed-type">${typeLabel}</div>
         </div>
-        <div class="bed-days">${dayHeader}${dayCells}</div>
+        <div class="bed-days">${dayHeader}${bedRows}</div>
       `;
       list.appendChild(card);
     });
