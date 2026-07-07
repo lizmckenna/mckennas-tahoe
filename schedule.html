@@ -60,16 +60,16 @@
     if (data.mock) document.getElementById("mock-tag-foot").hidden = false;
 
     const KIND = {
-      meal:      { emoji: "🍽️",  pill: "warm", label: "meal" },
-      hike:      { emoji: "🥾",  pill: "pine", label: "hike" },
-      beach:     { emoji: "🏖️", pill: "",     label: "beach" },
-      bike:      { emoji: "🚴",  pill: "pine", label: "bike" },
-      party:     { emoji: "🎂",  pill: "warm", label: "party" },
-      boat:      { emoji: "🛶",  pill: "",     label: "on the water" },
-      game:      { emoji: "🎲",  pill: "warm", label: "games" },
-      talent:    { emoji: "💃",  pill: "warm", label: "talent show" },
-      kids:      { emoji: "🧒",  pill: "warm", label: "kids" },
-      logistics: { emoji: "📦",  pill: "muted", label: "logistics" },
+      meal:      { emoji: "🍽️",  pill: "k-meal",  label: "meal" },
+      hike:      { emoji: "🥾",  pill: "k-hike",  label: "hike" },
+      beach:     { emoji: "🏖️", pill: "k-beach", label: "beach" },
+      bike:      { emoji: "🚴",  pill: "k-bike",  label: "bike" },
+      party:     { emoji: "🎂",  pill: "k-party", label: "party" },
+      boat:      { emoji: "🛶",  pill: "k-boat",  label: "on the water" },
+      game:      { emoji: "🎲",  pill: "k-game",  label: "games" },
+      talent:    { emoji: "💃",  pill: "k-talent", label: "talent show" },
+      kids:      { emoji: "🧒",  pill: "k-kids",  label: "kids" },
+      logistics: { emoji: "📦",  pill: "muted",   label: "logistics" },
     };
 
     // When an itinerary row has no Kind column, guess one from the title so
@@ -112,7 +112,7 @@
               ${dl.leads ? `<div class="lead">Led by ${dl.leads}</div>` : ""}
               ${headcount}
             </div>
-            <span class="pill warm">meal</span>
+            <span class="pill k-meal">meal</span>
           </div>`;
 
       const list = items.map(s => {

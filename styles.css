@@ -356,6 +356,17 @@ a:hover { color: var(--tahoe-deep); }
 .pill.pine  { background: var(--pine-mist); color: var(--pine-deep); }
 .pill.muted { background: rgba(26,31,46,0.06); color: var(--ink-soft); }
 
+/* Per-kind pill colors — each activity type reads as its own color */
+.pill.k-meal   { background: #fdebd8; color: #c25e2a; }  /* orange  */
+.pill.k-party  { background: #fbe0e8; color: #c2344f; }  /* rose    */
+.pill.k-hike   { background: #dcefdc; color: #2e7d4f; }  /* green   */
+.pill.k-bike   { background: #d3efe9; color: #1c8a78; }  /* teal    */
+.pill.k-beach  { background: #d8eef7; color: #1f7a9c; }  /* sky     */
+.pill.k-boat   { background: #dde3f7; color: #3a4fb0; }  /* indigo  */
+.pill.k-game   { background: #ece0f7; color: #7a3fb0; }  /* purple  */
+.pill.k-talent { background: #fce0f2; color: #b8368f; }  /* magenta */
+.pill.k-kids   { background: #fbeecb; color: #a86a12; }  /* amber   */
+
 /* ===== Today's signups (chores) ===== */
 .signup-list {
   display: flex; flex-direction: column; gap: 12px;
