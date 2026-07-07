@@ -67,6 +67,7 @@
       party:     { emoji: "🎂",  pill: "warm", label: "party" },
       boat:      { emoji: "🛶",  pill: "",     label: "on the water" },
       game:      { emoji: "🎲",  pill: "warm", label: "games" },
+      talent:    { emoji: "💃",  pill: "warm", label: "talent show" },
       kids:      { emoji: "🧒",  pill: "warm", label: "kids" },
       logistics: { emoji: "📦",  pill: "muted", label: "logistics" },
     };
@@ -80,7 +81,8 @@
       if (/bike|cycl|ride/.test(t)) return "bike";
       if (/kayak|paddle|boat|raft|sail|canoe/.test(t)) return "boat";
       if (/beach|swim|lake day|sand/.test(t)) return "beach";
-      if (/game|trivia|puzzle|movie|talent/.test(t)) return "game";
+      if (/talent|dance|dancing|perform|show/.test(t)) return "talent";
+      if (/game|trivia|puzzle|movie/.test(t)) return "game";
       if (/breakfast|lunch|dinner|bbq|cook|potluck|meal/.test(t)) return "meal";
       if (/kid|craft|playground/.test(t)) return "kids";
       return "";
